@@ -1,5 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const Dishes = require('../models/dishes');
+
 // Like for /dishes end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
 // our application will become so comebursome.
@@ -11,25 +14,29 @@ dishRouter.use(bodyParser.json());
 // All the below methods ALL, GET, POST, PUT, DELETE are grouped and are implemented
 // on the dishRouter and for this particular router all the methods are chained together
 dishRouter.route('/')
-// This method is executed by default irrespective of the request GET, POST, PUT, DELETE is make to 
-//  /dishes endpoint.
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    // Becuase of calling the next() after all method executed then its corresponding actual method wll execute.
-    // That is if the request to /dishes is GET Method then after executing the ALL Method
-    // then corresponding GET Method will be executed.
-    next();
-})
+
 .get((req, res, next) => {
-    // Here if we modify the req, res in the above any of the middlewares or methods then the
-    // modified req, res will be obtained as parameter to this.
-    // That is if we modify the req and res in ALL Method of /dishes then this modified
-    // req and res will be passed as parameters to GET Method of /dishes
-    res.end('Will send all the dishes to you');
+    Dishes.find({})
+    .then((dishes) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        // res.json() will take json object as parameter and sents backs to the client
+        res.json(dishes);
+    }, err => next(err))
+    .catch((err) => next(err))
 })
 .post((req, res, next) => {
-    res.end(`Will add the dish: ${req.body.name} with details ${req.body.description}`);
+    // Since we applied the body parser whatever there in the body of the request and adds
+    //  back to the req object as req.body we can directly create the dish by passing req.body
+    // as parameter to Dishes.create()
+    Dishes.create(req.body)
+    .then((dish) => {
+        console.log("Dish created : " + dish);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+    }, err => next(err))
+    .catch((err) => next(err))
 })
 // PUT operation on /dishes endpoint does not make any value 
 .put((req, res, next) => {
@@ -37,6 +44,51 @@ dishRouter.route('/')
     res.end(`PUT operation is not supported on /dishes`);
 })
 .delete((req, res, next) => {
-    res.end(`Deleting all the dishes`);
+    Dishes.deleteMany({})
+    .then((resp) => {
+        res.statusCode = 200,
+        res.setHeader('Content-Type', 'application/json');
+        res.json(resp);
+    }, err => next(err))
+    .catch((err) => next(err))
 })
+
+dishRouter.route('/:dishId')
+.get((req, res, next) => {
+    Dishes.findById(req.params.dishId)
+    .then((dish) => {
+        res.statusCode = 200,
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+.post((req, res, next) => {
+    res.statusCode = 403;
+    res.end(`POST operation not supported on /dishes/:${req.params.dishId}`)
+})
+.put((req, res, next) => {
+    // To return the updated dish we need to enable the bew flag
+    Dishes.findByIdAndUpdate(req.params.dishId, {
+        $set : req.body
+    }, { new : true })
+    // Here dish is dish after updated
+    .then((dish) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+.delete((req, res, next) => {
+    Dishes.findByIdAndDelete(req.params.dishId)
+    // Here dish is removed dish
+    .then((dish) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+
 module.exports = dishRouter;
