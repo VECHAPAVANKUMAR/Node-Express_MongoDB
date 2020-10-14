@@ -9,9 +9,14 @@ const router = express.Router();
 router.use(bodyParser.json());
 
 router.route('/')
-.get(cors.corsWithOptions, (req, res, next) => {
-    console.log(req.body);
-    res.send('Will respond with a resource');
+.get(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    User.find({})
+    .then((users) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(users)
+    }, err => next(err))
+    .catch((err) => next(err));
 });
 
 router.route('/signup')

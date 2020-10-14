@@ -26,7 +26,7 @@ promotionRouter.route('/')
     }, err => next(err))
     .catch((err) => next(err))        
 })
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Promotions.create(req.body)
     .then((promotion) => {
         console.log("Promotion created : " + promotion);
@@ -38,11 +38,11 @@ promotionRouter.route('/')
     .catch((err) => next(err))        
 })
 // PUT operation on /promotions endpoint does not make any value 
-.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /promotions`);
 })
-.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Promotions.deleteMany({})
     .then((promotions) => {
         res.statusCode = 200;
@@ -64,11 +64,11 @@ promotionRouter.route("/:promoId")
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /promotions/:${req.params.promoId}`)
 })
-.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Promotions.findByIdAndUpdate(req.params.promoId, {
         $set : req.body
     }, { new : true })
@@ -79,7 +79,7 @@ promotionRouter.route("/:promoId")
     }, err => next(err))
     .catch((err) => next(err))
 })
-.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Promotions.findByIdAndDelete(req.params.promoId)
     .then((promotion) => {
         res.statusCode = 200;

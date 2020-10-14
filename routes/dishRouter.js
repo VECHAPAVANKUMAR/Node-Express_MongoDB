@@ -27,10 +27,10 @@ dishRouter.route('/')
         // res.json() will take json object as parameter and sents backs to the client
         res.json(dishes);
     }, err => next(err))
-    .catch((err) => next(err))
+    .catch((err) => next(err));
 })
 // Post a Single Dish
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     // Since we applied the body parser whatever there in the body of the request and adds
     //  back to the req object as req.body we can directly create the dish by passing req.body
     // as parameter to Dishes.create()
@@ -44,12 +44,12 @@ dishRouter.route('/')
     .catch((err) => next(err))
 })
 // PUT operation on /dishes endpoint does not make any value 
-.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /dishes`);
 })
 // delete all the dishes
-.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin,  (req, res, next) => {
     Dishes.deleteMany({})
     .then((resp) => {
         res.statusCode = 200,
@@ -71,12 +71,12 @@ dishRouter.route('/:dishId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /dishes/:${req.params.dishId}`)
 })
 // Update a paricular dish using dishId if exists
-.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     // To return the updated dish we need to enable the bew flag
     Dishes.findByIdAndUpdate(req.params.dishId, {
         $set : req.body
@@ -90,7 +90,7 @@ dishRouter.route('/:dishId')
     .catch((err) => next(err))
 })
 // delete that particular dish using dishId if exists
-.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findByIdAndDelete(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {
@@ -123,7 +123,7 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err))
 })
 // post a commengt to tha specified dish 
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     // Since we applied the body parser whatever there in the body of the request and adds
     //  back to the req object as req.body we can directly create the dish by passing req.body
     // as parameter to Dishes.create()
@@ -149,12 +149,12 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err))
 })
 // PUT operation on /dishes endpoint does not make any value 
-.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /dishes/${req.params.dishId}/comments`);
 })
 // delethe all the comments that are existed for the specified dish
-.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish !== null) {
@@ -202,13 +202,13 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /dishes/:${req.params.dishId}/comments/${req.params.commentId}`)
 })
 // While updating the comment we need to allow the author name to be updated
 // we should update rating, comment only
-.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {
@@ -238,7 +238,7 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, err => next(err))
     .catch((err) => next(err))})
 // delete the specified comment for the specified dish if exists
-.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {

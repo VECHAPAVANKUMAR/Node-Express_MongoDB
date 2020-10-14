@@ -30,12 +30,11 @@ opts.secretOrKey = config.secretKey;
 exports.jwtPassport = passport.use(new JwtStrategy(opts,
     // done is the callback that the passport provides it as parameter
     (jwt_payload, done) => {
-        console.log('jwt_payload', jwt_payload);
         User.findOne({_id : jwt_payload._id}, (err, user) => {
             if (err) {
                 return done(err, false);
             } else if (user) {
-                return done(null, true);
+                return done(null, user);
             } else {
                 return done(null, false);
             }
@@ -47,10 +46,10 @@ exports.verifyUser = passport.authenticate('jwt', {session : false})
 
 exports.verifyAdmin = (req, res, next) => {
     if (req.user.admin) {
-        next()
+        next();
     } else {
+        let err = new Error('You are not authorized to perform this operation!');
         res.statusCode = 403;
-        res.setHeader("Content-Type", "text/plain");
-        res.end('Unauthorized');
+        return next(err);
     }
 }
