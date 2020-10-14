@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const Leaders = require('../models/leaders');
+const authenticate = require('../authenticate');
+
 // Like for /leaders end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
 // our application will become so comebursome.
@@ -21,7 +23,7 @@ leaderRouter.route('/')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
     Leaders.create(req.body)
     .then((leader) => {
         res.statusCode = 200;
@@ -31,11 +33,11 @@ leaderRouter.route('/')
     .catch((err) => next(err))
 })
 // PUT operation on /leaders endpoint does not make any value 
-.put((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /leaders`);
 })
-.delete((req, res, next) => {
+.delete(authenticate.verifyUser, (req, res, next) => {
     Leaders.deleteMany({})
     .then((leaders) => {
         res.statusCode = 200;
@@ -56,10 +58,22 @@ leaderRouter.route('/:leaderId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, (req, res, next) => {
     res.end(`POST method not supported on /leaders/${req.params.leaderId}`)
 })
-.delete((req, res, next) => {
+.put(authenticate.verifyUser, (req, res, next) => {
+    Leaders.findByIdAndUpdate(req.params.leaderId, {
+        $set : req.body
+    },
+    {new : true})
+    .then((leader) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(leader);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+.delete(authenticate.verifyUser, (req, res, next) => {
     Leaders.findByIdAndDelete(req.params.leaderId)
     .then((leader) => {
         res.statusCode = 200;

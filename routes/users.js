@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const User = require('../models/user');
 let passport = require('passport');
-
+const authenticate= require('../authenticate');
 const router = express.Router();
 router.use(bodyParser.json());
 
@@ -36,9 +36,11 @@ router.route('/login')
 // success then (req, res) callback is executed but if failed then appropriate error
 // message will sent back to the client automatically by passport.authenticate()
 .post(passport.authenticate('local'), (req, res) => {
+
+    let token = authenticate.getToken({_id : req.user._id})
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.json({success : true, status: 'You are loggin sucessfully!'});
+    res.json({success : true, token : token, status: 'You are loggin sucessfully!'});
 })
 
 router.route('/logout')

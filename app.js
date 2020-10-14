@@ -18,6 +18,7 @@ var FileStore = require('session-file-store')(session);
 var passport = require('passport');
 // load passport local strategy
 var authenticate = require('./authenticate');
+var config = require('./config');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -33,7 +34,7 @@ mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
 // conFusion is the database
-const url = 'mongodb://127.0.0.1:27017/conFusion';
+const url = config.mongoUrl;
 var connect = mongoose.connect(url);
 connect.then((db) => {
   console.log('Connected to the server correctly');
@@ -52,42 +53,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Implementing signed cookies which are send once client get authorized
-// The reason for using cookies is as we know that in order for client to access any 
-// endpoint he need to get authorized for every request because we apply auth middleware
-// before accesing the any endpoints which is required.
-// cookies are limited in size.
-// For signed cookie we nee to pass our secret key to the cookie parser
-// app.use(cookieParser('This is my secret key'));
-
-app.use(session({
-	name : "session-id",
-	secret : 'This is my secret key',
-	saveUninitialized : false,
-	resave : false,
-	store : new FileStore()
-}));
-
 app.use(passport.initialize());
-app.use(passport.session())
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// Implementing Authentication of the user
-function auth (req, res, next) {
-	// user will be loaded on to the req object passport.session()
-	if(!req.user) {
-		var err = new Error('You are not authenticated!');
-		err.status = 401;
-		return next(err);
-	}
-	else {
-		next();
-	}
-}
-
-app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/dishes', dishRouter);
