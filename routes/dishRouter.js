@@ -29,7 +29,7 @@ dishRouter.route('/')
     }, err => next(err))
     .catch((err) => next(err));
 })
-// Post a Single Dish
+// Post the Dishes
 .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     // Since we applied the body parser whatever there in the body of the request and adds
     //  back to the req object as req.body we can directly create the dish by passing req.body
@@ -208,24 +208,29 @@ dishRouter.route('/:dishId/comments/:commentId')
 })
 // While updating the comment we need to allow the author name to be updated
 // we should update rating, comment only
-.put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
-    // Here dish is removed dish
     .then((dish) => {
         if (dish !== null && dish.comments.id(req.params.commentId) !== null) {
-            if (req.body.rating) {
-                dish.comments.id(req.params.commentId).rating = req.body.rating;
+            if (req.user.username === dish.comments.id(req.params.comentId).author) {
+                if (req.body.rating) {
+                    dish.comments.id(req.params.commentId).rating = req.body.rating;
+                }
+                if (req.body.comment) {
+                    dish.comments.id(req.params.commentId).comment = req.body.comment;
+                }
+                dish.save()
+                .then((dish) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    // res.json() will take json object as parameter and sents backs to the client
+                    res.json(dish);
+                })
+            } else {
+                err = new Error('You are not authorized to perform this operation!');
+                err.status = 403;
+                return next(err);
             }
-            if (req.body.comment) {
-                dish.comments.id(req.params.commentId).comment = req.body.comment;
-            }
-            dish.save()
-            .then((dish) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                // res.json() will take json object as parameter and sents backs to the client
-                res.json(dish);
-            })
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found');
             err.status = 404;
@@ -238,19 +243,25 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, err => next(err))
     .catch((err) => next(err))})
 // delete the specified comment for the specified dish if exists
-.delete(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {
         if (dish !== null && dish.comments.id(req.params.commentId) !== null) {
-            dish.comments.id(req.params.commentId).remove();
-            dish.save()
-            .then((dish) => {
-                res.statusCode = 200;
-                res.setHeader('Content-Type', 'application/json');
-                // res.json() will take json object as parameter and sents backs to the client
-                res.json(dish);
-            })
+            if (req.user.username === dish.comments.id(req.params.commentId).author) {
+                dish.comments.id(req.params.commentId).remove();
+                dish.save()
+                .then((dish) => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    // res.json() will take json object as parameter and sents backs to the client
+                    res.json(dish);
+                })
+            } else {
+                let err = new Error("You are not authorized to perform this operation!");
+                err.status = 403;
+                return next(err);
+            }
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found');
             err.status = 404;

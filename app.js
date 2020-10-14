@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 // This is used to issue the cookies and signed cookies to 
 // the client once he gets authorized
-var cookieParser = require('cookie-parser');
+// var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 // Since cookies are fixed in size we cannot store limited information about the user
 // They just reminds the server about which client is accessing it.
@@ -12,9 +12,9 @@ var logger = require('morgan');
 // index by session id.
 // sessions store in the permanent store on server side and will be wiped out from the
 // memory when server restarts 
-var session = require('express-session');
+// var session = require('express-session');
 // session file store is used to store session information in files
-var FileStore = require('session-file-store')(session);
+// var FileStore = require('session-file-store')(session);
 var passport = require('passport');
 // load passport local strategy
 var authenticate = require('./authenticate');
