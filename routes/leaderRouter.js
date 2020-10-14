@@ -1,5 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const Promotions = require('../models/promotions');
+const Leaders = require('../models/leaders');
 // Like for /leaders end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
 // our application will become so comebursome.
@@ -11,25 +14,23 @@ leaderRouter.use(bodyParser.json());
 // All the below methods ALL, GET, POST, PUT, DELETE are grouped and are implemented
 // on the leaderRouter and for this particular router all the methods are chained together
 leaderRouter.route('/')
-// This method is executed by default irrespective of the request GET, POST, PUT, DELETE is make to 
-//  /leaders endpoint.
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    // Becuase of calling the next() after all method executed then its corresponding actual method wll execute.
-    // That is if the request to /leaders is GET Method then after executing the ALL Method
-    // then corresponding GET Method will be executed.
-    next();
-})
 .get((req, res, next) => {
-    // Here if we modify the req, res in the above any of the middlewares or methods then the
-    // modified req, res will be obtained as parameter to this.
-    // That is if we modify the req and res in ALL Method of /leaders then this modified
-    // req and res will be passed as parameters to GET Method of /leaders
-    res.end('Will send all the leaders to you');
+    Leaders.find({})
+    .then((leaders) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(leaders);
+    }, err => next(err))
+    .catch((err) => next(err))
 })
 .post((req, res, next) => {
-    res.end(`Will add the leader: ${req.body.name} with details ${req.body.description}`);
+    Leaders.create(req.body)
+    .then((leader) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(leader);
+    }, err => next(err))
+    .catch((err) => next(err))
 })
 // PUT operation on /leaders endpoint does not make any value 
 .put((req, res, next) => {
@@ -37,6 +38,36 @@ leaderRouter.route('/')
     res.end(`PUT operation is not supported on /leaders`);
 })
 .delete((req, res, next) => {
-    res.end(`Deleting all the leaders`);
+    Leaders.deleteMany({})
+    .then((leaders) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(leaders);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+
+leaderRouter.route('/:leaderId')
+.get((req, res, next) => {
+    Leaders.findById(req.params.leaderId)
+    .then((leader) => {
+        console.log(leader);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(leader);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+.post((req, res, next) => {
+    res.end(`POST method not supported on /leaders/${req.params.leaderId}`)
+})
+.delete((req, res, next) => {
+    Leaders.findByIdAndDelete(req.params.leaderId)
+    .then((leader) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(leader);
+    }, err => next(err))
+    .catch((err) => next(err))
 })
 module.exports = leaderRouter;

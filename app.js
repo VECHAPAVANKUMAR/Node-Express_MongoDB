@@ -38,6 +38,39 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+// Implementing Authentication of the user
+auth = (req, res, next) => {
+  console.log(req.headers);
+  let authHeader = req.headers.authorization;
+  // checking whether the autherization header is present in incoming request
+  if (!authHeader) {
+    let err = new Error('You are not authenticated');
+    // Basic Authentication means username and password based authentication
+    // So, in the request we need to pass the username and password in the Authentication header as
+    // Authentication : Basic base64 encoded format of username and password seperated by : 
+	// between username and password
+	// That is username:password
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+	next(err);
+	return;
+  } else { // Here the user has set the Authorization Hedaer in the request
+    // so we are extracting the username and password from the authenticatinn header
+      let auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(":")
+      const username = auth[0];
+	  const password = auth[1];
+	// If valid user then the request is forwarded to next
+    if (username === "admin" && password === "password") {
+      next();
+    } else {
+		let err = new Error('You are not authenticated');
+		res.setHeader('WWW-Authenticate', 'Basic');
+		err.status = 401;
+		next(err);
+      }
+    }
+}
+app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);

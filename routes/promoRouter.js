@@ -1,5 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const Promotions = require('../models/promotions');
 // Like for /promotions end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
 // our application will become so comebursome.
@@ -11,25 +13,26 @@ promotionRouter.use(bodyParser.json());
 // All the below methods ALL, GET, POST, PUT, DELETE are grouped and are implemented
 // on the promotionRouter and for this particular router all the methods are chained together
 promotionRouter.route('/')
-// This method is executed by default irrespective of the request GET, POST, PUT, DELETE is make to 
-//  /promotions endpoint.
-.all((req, res, next) => {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/plain');
-    // Becuase of calling the next() after all method executed then its corresponding actual method wll execute.
-    // That is if the request to /promotions is GET Method then after executing the ALL Method
-    // then corresponding GET Method will be executed.
-    next();
-})
 .get((req, res, next) => {
-    // Here if we modify the req, res in the above any of the middlewares or methods then the
-    // modified req, res will be obtained as parameter to this.
-    // That is if we modify the req and res in ALL Method of /promotions then this modified
-    // req and res will be passed as parameters to GET Method of /promotions
-    res.end('Will send all the promotions to you');
+    Promotions.find({})
+    .then((promotions) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        // res.json() will take json object as parameter and sents backs to the client
+        res.json(promotions);
+    }, err => next(err))
+    .catch((err) => next(err))        
 })
 .post((req, res, next) => {
-    res.end(`Will add the promotion: ${req.body.name} with details ${req.body.description}`);
+    Promotions.create(req.body)
+    .then((promotion) => {
+        console.log("Promotion created : " + promotion);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        // res.json() will take json object as parameter and sents backs to the client
+        res.json(promotion);
+    }, err => next(err))
+    .catch((err) => next(err))        
 })
 // PUT operation on /promotions endpoint does not make any value 
 .put((req, res, next) => {
@@ -37,6 +40,50 @@ promotionRouter.route('/')
     res.end(`PUT operation is not supported on /promotions`);
 })
 .delete((req, res, next) => {
-    res.end(`Deleting all the promotions`);
+    Promotions.deleteMany({})
+    .then((promotions) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        // res.json() will take json object as parameter and sents backs to the client
+        res.json(promotions);
+    }, err => next(err))
+    .catch((err) => next(err))        
 })
+
+promotionRouter.route("/:promoId")
+.get((req, res, next) => {
+    Promotions.findById(req.params.promoId)
+    .then((promotion) => {
+        res.statusCode = 200,
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotion);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+.post((req, res, next) => {
+    res.statusCode = 403;
+    res.end(`POST operation not supported on /promotions/:${req.params.promoId}`)
+})
+.put((req, res, next) => {
+    Promotions.findByIdAndUpdate(req.params.promoId, {
+        $set : req.body
+    }, { new : true })
+    .then((promotion) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotion);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+.delete((req, res, next) => {
+    Promotions.findByIdAndDelete(req.params.promoId)
+    .then((promotion) => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(promotion);
+    }, err => next(err))
+    .catch((err) => next(err))
+})
+
+
 module.exports = promotionRouter;
