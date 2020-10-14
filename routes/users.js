@@ -19,8 +19,24 @@ router.route('/signup')
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');
             res.json(err);
-        }
-        else {
+        } else {
+
+            if (req.body.firstname) {
+                user.firstname = req.body.firstname;
+            }
+            
+            if (req.body.lastname) {
+                user.lastname = req.body.lastname;
+            }
+            
+            user.save((err, user) => {
+                if (err) {
+                    res.statusCode = 500;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(err);
+                    return;
+                }
+            })
             // Perform login operation to ensure that signup happend correctly
             passport.authenticate('local')(req, res, () => {
                 res.statusCode = 200;

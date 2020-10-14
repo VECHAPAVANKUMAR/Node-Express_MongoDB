@@ -17,8 +17,12 @@ const commentSchema = new Schema(
             required : true
         },
         author : {
-            type : String,
-            required : true
+            // we changed the type of author from string to mongoose.Schema.Types.ObjectId
+            // because we can get the author name from the user itself rather than manually 
+            // supplying it. For this author should refer to user and this can be achieved by
+            // mongoose populate
+            type : mongoose.Schema.Types.ObjectId,
+            ref : 'user' // refering the user model
         }
     },
     // We can also have a mongoose automatically timestamps inserted into our model

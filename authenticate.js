@@ -19,7 +19,7 @@ passport.deserializeUser(User.deserializeUser());
 exports.getToken = (user) => {
     return jwt.sign(user, config.secretKey, {
         // expiresIn in seconds 3600 is expires in one hour
-        expiresIn : 3600
+        expiresIn : 36000
     });
 }
 
@@ -44,3 +44,13 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
     }))
 
 exports.verifyUser = passport.authenticate('jwt', {session : false})
+
+exports.verifyAdmin = (req, res, next) => {
+    if (req.user.admin) {
+        next()
+    } else {
+        res.statusCode = 403;
+        res.setHeader("Content-Type", "text/plain");
+        res.end('Unauthorized');
+    }
+}
