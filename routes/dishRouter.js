@@ -17,11 +17,6 @@ dishRouter.route('/')
 // get all the dishes
 .get((req, res, next) => {
     Dishes.find({})
-    // .populate('comments.author) populated the author details in comment
-    // That means whenever a comment is displaying in that comment author field
-    // contains all the information that was there in user model instead of just
-    // displaying the author name
-    .populate('comments.author._id')
     .then((dishes) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -64,7 +59,6 @@ dishRouter.route('/:dishId')
 // get particular dish using dishId if exists
 .get((req, res, next) => {
     Dishes.findById(req.params.dishId)
-    .populate('comments.author._id')
     .then((dish) => {
         res.statusCode = 200,
         res.setHeader('Content-Type', 'application/json');
@@ -107,7 +101,6 @@ dishRouter.route('/:dishId/comments')
 // get the comments of the specified dish if exits
 .get((req, res, next) => {
     Dishes.findById(req.params.dishId)
-    .populate('comments.author._id')
     .then((dish) => {
         // if dish exists
         if (dish !== null) {
@@ -133,18 +126,13 @@ dishRouter.route('/:dishId/comments')
         // if dish exists
         if (dish !== null) {
             // while posting the commet we are linking the author with user id
-            req.body.author = req.user._id;
             dish.comments.push(req.body);
             dish.save()
             .then((dish) => {
-                Dishes.findById(dish._id)
-                .populate('comments.author')
-                .then((dish) => {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'application/json');
-                    // res.json() will take json object as parameter and sents backs to the client
-                    res.json(dish);
-                })
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                // res.json() will take json object as parameter and sents backs to the client
+                res.json(dish);
             })
         } else {
             err = new Error(`Dish ${req.params.dishId} not found`);
@@ -188,7 +176,6 @@ dishRouter.route('/:dishId/comments/:commentId')
 // get the specified comment of specified dish if exists
 .get((req, res, next) => {
     Dishes.findById(req.params.dishId)
-    .populate('comments.author._id')
     .then((dish) => {
         // if dish exists and that particular comment exists in that dish comments
         if (dish !== null && dish.comments.id(req.params.commentId) !== null) {
@@ -227,14 +214,10 @@ dishRouter.route('/:dishId/comments/:commentId')
             }
             dish.save()
             .then((dish) => {
-                Dishes.findById(dish._id)
-                .populate('comments.author._id')
-                .then((dish) => {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'application/json');
-                    // res.json() will take json object as parameter and sents backs to the client
-                    res.json(dish);
-                })
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                // res.json() will take json object as parameter and sents backs to the client
+                res.json(dish);
             })
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found');
@@ -256,14 +239,10 @@ dishRouter.route('/:dishId/comments/:commentId')
             dish.comments.id(req.params.commentId).remove();
             dish.save()
             .then((dish) => {
-                Dishes.findById(dish._id)
-                .populate('comments.author._id')
-                .then((dish) => {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'application/json');
-                    // res.json() will take json object as parameter and sents backs to the client
-                    res.json(dish);
-                })
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                // res.json() will take json object as parameter and sents backs to the client
+                res.json(dish);
             })
         } else if (dish == null) {
             err = new Error('Dish ' + req.params.dishId + ' not found');
