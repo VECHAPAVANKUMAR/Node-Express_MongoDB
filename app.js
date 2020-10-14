@@ -5,6 +5,16 @@ var path = require('path');
 // the client once he gets authorized
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+// Since cookies are fixed in size we cannot store limited information about the user
+// They just reminds the server about which client is accessing it.
+// To store much information about the user then we have sessions
+// session is a combination of cookie with session id and server side storage of information
+// index by session id.
+// sessions store in the permanent store on server side and will be wiped out from the
+// memory when server restarts 
+var session = require('express-session');
+// session file store is used to store session information in files
+var FileStore = require('session-file-store')(session);
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -39,19 +49,29 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
 // Implementing signed cookies which are send once client get authorized
 // The reason for using cookies is as we know that in order for client to access any 
 // endpoint he need to get authorized for every request because we apply auth middleware
 // before accesing the any endpoints which is required.
 // cookies are limited in size.
 // For signed cookie we nee to pass our secret key to the cookie parser
-app.use(cookieParser('This is my secret key'));
+// app.use(cookieParser('This is my secret key'));
+
+
+app.use(session({
+	name : "session-id",
+	secret : 'This is my secret key',
+	saveUninitialized : false,
+	resave : false,
+	store : new FileStore()
+}));
 // Implementing Authentication of the user
 auth = (req, res, next) => {
-	console.log(req.headers);
+	console.log(req.session);
 	console.log('Signed Cookie ', req.signedCookies);
 	// user is our cookie name which we will issued once user get authorized 
-	if (!req.signedCookies.user) {
+	if (!req.session.user) {
 		let authHeader = req.headers.authorization;
 		// checking whether the autherization header is present in incoming request
 		if (!authHeader) {
@@ -72,13 +92,16 @@ auth = (req, res, next) => {
 			const password = auth[1];
 		// If valid user then the request is forwarded to next
 		if (username === "admin" && password === "password") {
+			
 			// Now the user is valid so we will send a signed cookie in the res object
 			// baxk to the client. Due, to which from now every req that user makes
 			// this signed cookie will automatically added to req object.
 			// user is the name with which our cookie is saved
 			// admin is name of the user
 			// enable signed flag to create signed Cookie
-			res.cookie('user', 'admin', {signed : true});
+			// res.cookie('user', 'admin', {signed : true});
+
+			req.session.user = 'admin';
 			next();
 		} else {
 			let err = new Error('You are not authenticated');
@@ -88,7 +111,7 @@ auth = (req, res, next) => {
 			}
 		}
 	} else {
-		if (req.signedCookies.user === 'admin') {
+		if (req.session.user === 'admin') {
 			next()
 		} else { // This will not happend usually
 			let err = new Error('You are not authenticated');
