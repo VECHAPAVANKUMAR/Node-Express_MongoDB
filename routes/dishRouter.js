@@ -37,14 +37,10 @@ dishRouter.route('/')
     // as parameter to Dishes.create()
     Dishes.create(req.body)
     .then((dish) => {
-        Dishes.findById(dish._id)
-        .populate('comments.author._id')
-        .then((dish) => {
-            console.log("Dish created : " + dish);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.json(dish);
-        })
+        console.log("Dish created : " + dish);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(dish);
     }, err => next(err))
     .catch((err) => next(err))
 })
