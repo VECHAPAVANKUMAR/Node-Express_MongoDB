@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const Leaders = require('../models/leaders');
 const authenticate = require('../authenticate');
-
+const cors = require('./cors');
 // Like for /leaders end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
 // our application will become so comebursome.
@@ -14,7 +14,8 @@ leaderRouter.use(bodyParser.json());
 // All the below methods ALL, GET, POST, PUT, DELETE are grouped and are implemented
 // on the leaderRouter and for this particular router all the methods are chained together
 leaderRouter.route('/')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors, (req, res, next) => {
     Leaders.find({})
     .then((leaders) => {
         res.statusCode = 200;
@@ -23,7 +24,7 @@ leaderRouter.route('/')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Leaders.create(req.body)
     .then((leader) => {
         res.statusCode = 200;
@@ -33,11 +34,11 @@ leaderRouter.route('/')
     .catch((err) => next(err))
 })
 // PUT operation on /leaders endpoint does not make any value 
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /leaders`);
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Leaders.deleteMany({})
     .then((leaders) => {
         res.statusCode = 200;
@@ -48,7 +49,8 @@ leaderRouter.route('/')
 })
 
 leaderRouter.route('/:leaderId')
-.get((req, res, next) => {
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors, (req, res, next) => {
     Leaders.findById(req.params.leaderId)
     .then((leader) => {
         console.log(leader);
@@ -58,10 +60,10 @@ leaderRouter.route('/:leaderId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.end(`POST method not supported on /leaders/${req.params.leaderId}`)
 })
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Leaders.findByIdAndUpdate(req.params.leaderId, {
         $set : req.body
     },
@@ -73,7 +75,7 @@ leaderRouter.route('/:leaderId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Leaders.findByIdAndDelete(req.params.leaderId)
     .then((leader) => {
         res.statusCode = 200;

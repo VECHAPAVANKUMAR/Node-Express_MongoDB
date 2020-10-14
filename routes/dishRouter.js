@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Dishes = require('../models/dishes');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
+
 // Like for /dishes end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
 // our application will become so comebursome.
@@ -14,8 +16,10 @@ dishRouter.use(bodyParser.json());
 // All the below methods ALL, GET, POST, PUT, DELETE are grouped and are implemented
 // on the dishRouter and for this particular router all the methods are chained together
 dishRouter.route('/')
+// preflight request
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 // get all the dishes
-.get((req, res, next) => {
+.get(cors.cors, (req, res, next) => {
     Dishes.find({})
     .then((dishes) => {
         res.statusCode = 200;
@@ -26,7 +30,7 @@ dishRouter.route('/')
     .catch((err) => next(err))
 })
 // Post a Single Dish
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     // Since we applied the body parser whatever there in the body of the request and adds
     //  back to the req object as req.body we can directly create the dish by passing req.body
     // as parameter to Dishes.create()
@@ -40,12 +44,12 @@ dishRouter.route('/')
     .catch((err) => next(err))
 })
 // PUT operation on /dishes endpoint does not make any value 
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /dishes`);
 })
 // delete all the dishes
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.deleteMany({})
     .then((resp) => {
         res.statusCode = 200,
@@ -56,8 +60,9 @@ dishRouter.route('/')
 })
 
 dishRouter.route('/:dishId')
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 // get particular dish using dishId if exists
-.get((req, res, next) => {
+.get(cors.cors,(req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         res.statusCode = 200,
@@ -66,12 +71,12 @@ dishRouter.route('/:dishId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /dishes/:${req.params.dishId}`)
 })
 // Update a paricular dish using dishId if exists
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     // To return the updated dish we need to enable the bew flag
     Dishes.findByIdAndUpdate(req.params.dishId, {
         $set : req.body
@@ -85,7 +90,7 @@ dishRouter.route('/:dishId')
     .catch((err) => next(err))
 })
 // delete that particular dish using dishId if exists
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findByIdAndDelete(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {
@@ -98,8 +103,9 @@ dishRouter.route('/:dishId')
 
 // For Dish Comments
 dishRouter.route('/:dishId/comments')
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 // get the comments of the specified dish if exits
-.get((req, res, next) => {
+.get(cors.cors, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         // if dish exists
@@ -117,7 +123,7 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err))
 })
 // post a commengt to tha specified dish 
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     // Since we applied the body parser whatever there in the body of the request and adds
     //  back to the req object as req.body we can directly create the dish by passing req.body
     // as parameter to Dishes.create()
@@ -143,12 +149,12 @@ dishRouter.route('/:dishId/comments')
     .catch((err) => next(err))
 })
 // PUT operation on /dishes endpoint does not make any value 
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(`PUT operation is not supported on /dishes/${req.params.dishId}/comments`);
 })
 // delethe all the comments that are existed for the specified dish
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish !== null) {
@@ -173,8 +179,9 @@ dishRouter.route('/:dishId/comments')
 })
 
 dishRouter.route('/:dishId/comments/:commentId')
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 // get the specified comment of specified dish if exists
-.get((req, res, next) => {
+.get(cors.cors, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         // if dish exists and that particular comment exists in that dish comments
@@ -195,13 +202,13 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, err => next(err))
     .catch((err) => next(err))
 })
-.post(authenticate.verifyUser, (req, res, next) => {
+.post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     res.statusCode = 403;
     res.end(`POST operation not supported on /dishes/:${req.params.dishId}/comments/${req.params.commentId}`)
 })
 // While updating the comment we need to allow the author name to be updated
 // we should update rating, comment only
-.put(authenticate.verifyUser, (req, res, next) => {
+.put(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {
@@ -231,7 +238,7 @@ dishRouter.route('/:dishId/comments/:commentId')
     }, err => next(err))
     .catch((err) => next(err))})
 // delete the specified comment for the specified dish if exists
-.delete(authenticate.verifyUser, (req, res, next) => {
+.delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
     Dishes.findById(req.params.dishId)
     // Here dish is removed dish
     .then((dish) => {

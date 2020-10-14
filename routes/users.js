@@ -3,17 +3,19 @@ const bodyParser = require('body-parser');
 const User = require('../models/user');
 let passport = require('passport');
 const authenticate= require('../authenticate');
+const cors = require('./cors');
+
 const router = express.Router();
 router.use(bodyParser.json());
 
 router.route('/')
-.get((req, res, next) => {
+.get(cors.corsWithOptions, (req, res, next) => {
     console.log(req.body);
     res.send('Will respond with a resource');
 });
 
 router.route('/signup')
-.post((req, res, next) => {
+.post(cors.corsWithOptions, (req, res, next) => {
     User.register(new User({username: req.body.username}), req.body.password, (err, user) => {
         if (err) {
             res.statusCode = 500;
@@ -51,7 +53,7 @@ router.route('/login')
 // Here first passport.authenticate() middleware is applied if the authentication
 // success then (req, res) callback is executed but if failed then appropriate error
 // message will sent back to the client automatically by passport.authenticate()
-.post(passport.authenticate('local'), (req, res) => {
+.post(cors.corsWithOptions, passport.authenticate('local'), (req, res) => {
 
     let token = authenticate.getToken({_id : req.user._id})
     res.statusCode = 200;
@@ -60,7 +62,7 @@ router.route('/login')
 })
 
 router.route('/logout')
-.get((req, res, next) => {
+.get(cors.corsWithOptions, (req, res, next) => {
 
     if (req.session) {
         req.session.destroy();
