@@ -23,7 +23,6 @@ var promoRouter = require('./routes/promoRouter');
 var leaderRouter = require('./routes/leaderRouter');
 
 const mongoose = require('mongoose');
-const Dishes = require('./models/dishes');
 
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
@@ -58,7 +57,6 @@ app.use(express.urlencoded({ extended: false }));
 // For signed cookie we nee to pass our secret key to the cookie parser
 // app.use(cookieParser('This is my secret key'));
 
-
 app.use(session({
 	name : "session-id",
 	secret : 'This is my secret key',
@@ -66,65 +64,32 @@ app.use(session({
 	resave : false,
 	store : new FileStore()
 }));
-// Implementing Authentication of the user
-auth = (req, res, next) => {
-	console.log(req.session);
-	console.log('Signed Cookie ', req.signedCookies);
-	// user is our cookie name which we will issued once user get authorized 
-	if (!req.session.user) {
-		let authHeader = req.headers.authorization;
-		// checking whether the autherization header is present in incoming request
-		if (!authHeader) {
-		let err = new Error('You are not authenticated');
-		// Basic Authentication means username and password based authentication
-		// So, in the request we need to pass the username and password in the Authentication header as
-		// Authentication : Basic base64 encoded format of username and password seperated by : 
-		// between username and password
-		// That is username:password
-		res.setHeader('WWW-Authenticate', 'Basic');
-		err.status = 401;
-		next(err);
-		return;
-		} else { // Here the user has set the Authorization Hedaer in the request
-		// so we are extracting the username and password from the authenticatinn header
-			let auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(":")
-			const username = auth[0];
-			const password = auth[1];
-		// If valid user then the request is forwarded to next
-		if (username === "admin" && password === "password") {
-			
-			// Now the user is valid so we will send a signed cookie in the res object
-			// baxk to the client. Due, to which from now every req that user makes
-			// this signed cookie will automatically added to req object.
-			// user is the name with which our cookie is saved
-			// admin is name of the user
-			// enable signed flag to create signed Cookie
-			// res.cookie('user', 'admin', {signed : true});
-
-			req.session.user = 'admin';
-			next();
-		} else {
-			let err = new Error('You are not authenticated');
-			res.setHeader('WWW-Authenticate', 'Basic');
-			err.status = 401;
-			next(err);
-			}
-		}
-	} else {
-		if (req.session.user === 'admin') {
-			next()
-		} else { // This will not happend usually
-			let err = new Error('You are not authenticated');
-			err.status = 401;
-			next(err);
-		}
-	}
-}
-app.use(auth);
-app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+// Implementing Authentication of the user
+function auth (req, res, next) {
+  if(!req.session.user) {
+      var err = new Error('You are not authenticated!');
+      err.status = 401;
+      return next(err);
+  }
+  else {
+    if (req.session.user === 'authenticated') {
+      next();
+    }
+    else {
+      var err = new Error('You are not authenticated!');
+      err.status = 401;
+      return next(err);
+    }
+  }
+}
+
+app.use(auth);
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.use('/dishes', dishRouter);
 app.use('/promotions', promoRouter);
 app.use('/leaders', leaderRouter);

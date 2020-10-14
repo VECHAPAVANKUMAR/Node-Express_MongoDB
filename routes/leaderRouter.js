@@ -1,7 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const Promotions = require('../models/promotions');
 const Leaders = require('../models/leaders');
 // Like for /leaders end point we will have ALL, GET, PUT, POST, DELETE methods
 // for every other end point. So, if we write all of them in a single index.js file then
