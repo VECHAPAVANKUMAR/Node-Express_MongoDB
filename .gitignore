@@ -1,3 +1,4 @@
 node_modules
 bin/private.key
 bin/77503065_httplocalhost3000.cert
+config.js
