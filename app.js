@@ -1,20 +1,9 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-// This is used to issue the cookies and signed cookies to 
-// the client once he gets authorized
-// var cookieParser = require('cookie-parser');
+// Morgan is used to log the sufficient information about 
+// the incoming requests on the console
 var logger = require('morgan');
-// Since cookies are fixed in size we cannot store limited information about the user
-// They just reminds the server about which client is accessing it.
-// To store much information about the user then we have sessions
-// session is a combination of cookie with session id and server side storage of information
-// index by session id.
-// sessions store in the permanent store on server side and will be wiped out from the
-// memory when server restarts 
-// var session = require('express-session');
-// session file store is used to store session information in files
-// var FileStore = require('session-file-store')(session);
 var passport = require('passport');
 // load passport local strategy
 var authenticate = require('./authenticate');
@@ -47,6 +36,7 @@ connect.then((db) => {
 var app = express();
 // for all incoming requests if the request is not secure that means req is 
 // not from https then we redirect it to https
+// secure is the field that would be there with in request object itself
 app.all('*', (req, res, next) => {
 	if (req.secure) {
 		return next();

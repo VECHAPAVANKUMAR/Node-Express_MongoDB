@@ -17,7 +17,9 @@ var corsOptionsDelegate = (req, callback) => {
 
     callback(null, corsOptions);
 }
+
 // Allows request from all domains 
 exports.cors = cors();
+
 // Allows requests from only whitelisted domains
 exports.corsWithOptions = cors(corsOptionsDelegate);
