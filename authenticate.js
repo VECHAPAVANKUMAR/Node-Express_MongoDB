@@ -10,6 +10,7 @@ var config = require('./config');
 // configuring the local strategy to use our own authentication strategy
 exports.local = passport.use(new LocalStrategy(User.authenticate()));
 // passport.authenticate will mount the user property to the req object
+// upon sucessfull authentication
 // so we can access using req.user
 // Since we are tracking the user based on sessions 
 // for passport to support we need to serialize and deserialize the user
@@ -18,7 +19,7 @@ passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = (user) => {
     return jwt.sign(user, config.secretKey, {
-        // expiresIn in seconds 3600 is expires in one hour
+        // expiresIn in seconds 36000 is expires in one hour
         expiresIn : 36000
     });
 }
@@ -34,6 +35,8 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
             if (err) {
                 return done(err, false);
             } else if (user) {
+                // user is valid so return user which makes the passport to
+                // load user object on to the request.
                 return done(null, user);
             } else {
                 return done(null, false);
