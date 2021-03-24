@@ -1,14 +1,13 @@
-const { getAccessToken, getProducts, addProduct, updateProduct } = require('../Integrations/shopifyIntegration');
+const { getAccessToken, getProducts, addProduct, updateProduct, deleteProduct } = require('../Integrations/shopifyIntegration');
 
 const nonce = require('nonce')();
 const crypto = require('crypto');
 const querystring = require('querystring');
-const { resolve } = require('path');
 
-const apiKey = "a30d82b041e7bc5ccdb782c209079b08";
-const apiSecret = "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";
+const apiKey = 'ab03836400ab41bbacbc3e00de222a46';
+const apiSecret = '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'
 const scopes = 'read_products, write_products';
-const forwardingAddress = "https://great-mayfly-60.loca.lt"; // Replace this with your HTTPS Forwarding address
+const forwardingAddress = "https://sour-termite-77.loca.lt"; // Replace this with your HTTPS Forwarding address
 
 exports.buildInstallURL = (shop) => {
     const state = nonce();
@@ -66,11 +65,11 @@ exports.validateCode = async (shop, hmac, code, query) => {
     })
 }
 
-exports.getProducts = async (shop, accessToken) => {
+exports.getProducts = async (shop) => {
     return new Promise(async (resolve, reject) => {
         const url = 'https://' + shop + '/admin/api/2021-01/products.json'
         try {
-            const products = await getProducts(url, accessToken)
+            const products = await getProducts(url, shop)
             return resolve(products)       
         } catch (error) {
             return reject(error)
@@ -78,29 +77,41 @@ exports.getProducts = async (shop, accessToken) => {
     })
 }
 
-exports.addProduct = async (shop, accessToken, product) => {
+exports.addProduct = async (shop, product) => {
     return new Promise(async(resolve, reject) => {
-        const url = 'https://' + shop + '/admin/api/2021-01/products/.json'
+        const url = 'https://' + shop + '/admin/api/2021-01/products/'
         try {
-            const addedProduct = await addProduct(url, accessToken, product)
+            const addedProduct = await addProduct(url, shop, product)
             return resolve(addedProduct)
         } catch (error) {
             return reject(error)
         }
     })
     .catch((err) => {
-        console.log('arror while adding the product', err)
+        console.log('error while adding the product', err.message, err)
     })
 }
 
-exports.updateProduct = async (shop, accessToken, product, productId) => {
+exports.updateProduct = async (shop, product, productId) => {
     return new Promise(async(resolve, reject) => {
         const url = 'https://' + shop + '/admin/api/2021-01/products/' + productId + '.json'
         try {
-            const updatedProduct = await updateProduct(url, accessToken, product)
+            const updatedProduct = await updateProduct(url, shop, product)
             return resolve(updatedProduct)
         } catch (error) {
-            console.log('error while updating product 2', error)
+            // console.log('error while updating product 2', error)
+            return reject(error)
+        }
+    })
+}
+
+exports.deleteProduct = async (shop, productId) => {
+    return new Promise(async(resolve, reject) => {
+        const url = 'https://' + shop + '/admin/api/2021-01/products/' + productId + '.json'
+        try {
+            const deletedProduct = await deleteProduct(url, shop)
+            return resolve(deletedProduct)
+        } catch (error) {
             return reject(error)
         }
     })

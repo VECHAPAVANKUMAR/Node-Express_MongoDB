@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookie = require('cookie');
-const { buildInstallURL, validateCode, getProducts, addProduct, updateProduct } = require('../services/shopifyService');
+const { buildInstallURL, validateCode, getProducts, addProduct, updateProduct, deleteProduct } = require('../services/shopifyService');
 
 const shopifyRouter = express.Router();
 shopifyRouter.use(bodyParser.json());
@@ -39,11 +39,11 @@ shopifyRouter.route('/callback')
 
 shopifyRouter.route('/products')
 
-.get( async (req, res, next) => {
-	const { shop, accessToken } = req.query
-	if (shop && accessToken) {
+.get(async (req, res, next) => {
+	const { shop } = req.query
+	if (shop) {
 		try {
-			const products = await getProducts(shop, accessToken);
+			const products = await getProducts(shop);
 			res.status(200)
 			res.send(products)
 		} catch (error) {
@@ -57,10 +57,10 @@ shopifyRouter.route('/products')
 })
 
 .post(async (req, res, next) => {
-	const { shop, accessToken, product } = req.body
-	if (shop && accessToken && product) {
+	const { shop, product } = req.body
+	if (shop && product) {
 		try {
-			const addedProduct = await addProduct(shop, accessToken, product)
+			const addedProduct = await addProduct(shop, product)
 			res.status(200)
 			res.send(addedProduct)
 		} catch (error) {
@@ -73,26 +73,45 @@ shopifyRouter.route('/products')
 	}
 })
 
-shopifyRouter.route('/products/:productId')
+shopifyRouter.route('/products/:productId/')
 .put(async (req, res, next) => {
-	const { shop, accessToken, product } = req.body
+	const { shop, product } = req.body
 	const productId = req.params.productId
-	console.log("ID", productId, req.params)
-	if (shop && accessToken && product && productId) {
+	// console.log("ID", productId, req.params)
+	if (shop && product && productId) {
 		try {
-			const updatedProduct = await updateProduct(productId, shop, accessToken, product)
+			const updatedProduct = await updateProduct(shop, product, productId)
 			res.status(200)
 			res.send(updatedProduct)
 		} catch (error) {
-			console.log('error while updating product 3', error)
+			// console.log('error while updating product 3', error)
 			res.status(400)
 			res.send(error)			
 		}
 	} else {
 		res.status(400)
-		res.send('Missing shop or accesstoken or product or product id')
+		res.send('Missing shop or product or product id')
 	}
 })
+
+.delete(async (req, res) => {
+	const { shop } = req.body
+	const { productId } = req.params
+	if (shop && productId) {
+		try {
+			const deletedProduct = await deleteProduct(shop, productId)
+			res.status(200)
+			res.send(deletedProduct)
+		} catch (error) {
+			res.status(400)
+			res.send(error)
+		}
+	} else {
+		res.status(400)
+		res.send('Missing shop or product id')
+	}
+})
+
 module.exports = shopifyRouter;
 
 // {
