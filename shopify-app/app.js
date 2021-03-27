@@ -14,7 +14,6 @@ mongoose.set('useFindAndModify', false);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
-// conFusion is the database
 const url = 'mongodb://127.0.0.1:27017/shopify';
 var connect = mongoose.connect(url);
 connect.then((db) => {
