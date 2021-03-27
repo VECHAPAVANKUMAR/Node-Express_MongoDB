@@ -1,5 +1,6 @@
 const axios = require('axios')
 const request = require('request-promise');
+const Products = require('../models/products');
 const Shopify = require('../models/shopify')
 
 exports.getAccessToken = async (shop, accessTokenRequestUrl, accessTokenPayload) => {
@@ -83,17 +84,28 @@ exports.addProduct = async (url, shop, product) => {
             }
             const productResponse = await axios(options)
             // console.log('Added Product', productResponse.data)
+            const d = productResponse.data;
+            try {
+                const response = await Products.create({
+                    product : d.product,
+                    _id : d.product.id
+                })    
+                console.log("Product added to database", response)
+            } catch (error) {
+                console.log('Error while adding the product to database', error.message)
+                return reject(error.message)    
+            }
             return resolve(productResponse.data)
         } catch (error) {
             return reject(error.message)
         }
     })
     .catch((err) => {
-        console.log('error while adding the product', err.message, err)
+        console.log('Error while adding the product', err.message, err)
     })
 }
 
-exports.updateProduct = async (url, shop, product) => {
+exports.updateProduct = async (url, shop, product, productId) => {
     return new Promise(async (resolve, reject) => {
         let document;
         try {
@@ -112,7 +124,16 @@ exports.updateProduct = async (url, shop, product) => {
         }
         try {
             const updatedProductResponse = await axios(options)
-            // console.log('Updated Product 1', updatedProductResponse.data)
+            try {
+                const response = await Products.findByIdAndUpdate(productId, {
+                    $set : updatedProductResponse.data, 
+                    },{ new : true }
+                )
+                console.log("Updated product in database", response)
+            } catch (error) {
+                console.log('Error while updating the product ' + productId, error.message)
+                return reject(error.message)
+            }
             return resolve(updatedProductResponse.data)
         } catch (error) {
             console.log('error while updating product 1', error)
@@ -124,7 +145,7 @@ exports.updateProduct = async (url, shop, product) => {
     })
 }
 
-exports.deleteProduct = async (url, shop) => {
+exports.deleteProduct = async (url, shop, productId) => {
     return new Promise(async (resolve, reject) => {
         let document;
         try {
@@ -145,6 +166,13 @@ exports.deleteProduct = async (url, shop) => {
         try {
             const deletedProductResponse = await axios(options)
             // console.log('Deleted Product', deletedProductResponse.data)
+            try {
+                const response = await Products.findByIdAndDelete(productId)
+                console.log("Deleted the product " + productId, response)
+            } catch (error) {
+                console.log('Error while deleting the product from database', error.message);
+                return reject(error.message)
+            }
             return resolve(deletedProductResponse.data)
         } catch (error) {
             // console.log('Error while deleting product', error.message, error)

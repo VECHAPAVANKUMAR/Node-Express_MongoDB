@@ -7,7 +7,7 @@ const querystring = require('querystring');
 const apiKey = 'ab03836400ab41bbacbc3e00de222a46';
 const apiSecret = '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'
 const scopes = 'read_products, write_products';
-const forwardingAddress = "https://sour-termite-77.loca.lt"; // Replace this with your HTTPS Forwarding address
+const forwardingAddress = "https://rotten-husky-49.loca.lt"; // Replace this with your HTTPS Forwarding address
 
 exports.buildInstallURL = (shop) => {
     const state = nonce();
@@ -79,7 +79,7 @@ exports.getProducts = async (shop) => {
 
 exports.addProduct = async (shop, product) => {
     return new Promise(async(resolve, reject) => {
-        const url = 'https://' + shop + '/admin/api/2021-01/products/'
+        const url = 'https://' + shop + '/admin/api/2021-01/products.json/'
         try {
             const addedProduct = await addProduct(url, shop, product)
             return resolve(addedProduct)
@@ -96,7 +96,7 @@ exports.updateProduct = async (shop, product, productId) => {
     return new Promise(async(resolve, reject) => {
         const url = 'https://' + shop + '/admin/api/2021-01/products/' + productId + '.json'
         try {
-            const updatedProduct = await updateProduct(url, shop, product)
+            const updatedProduct = await updateProduct(url, shop, product, productId)
             return resolve(updatedProduct)
         } catch (error) {
             // console.log('error while updating product 2', error)
@@ -109,7 +109,7 @@ exports.deleteProduct = async (shop, productId) => {
     return new Promise(async(resolve, reject) => {
         const url = 'https://' + shop + '/admin/api/2021-01/products/' + productId + '.json'
         try {
-            const deletedProduct = await deleteProduct(url, shop)
+            const deletedProduct = await deleteProduct(url, shop, productId)
             return resolve(deletedProduct)
         } catch (error) {
             return reject(error)
